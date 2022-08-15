@@ -3,7 +3,12 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  authUrl: 'https://webapiauthnew.azurewebsites.net',
+  appointmentURL: 'https://cmdapiappointments.azurewebsites.net',
+  vetURL: 'https://cmdapidoctors.azurewebsites.net',
+  petURL: 'https://cmdapipatients.azurewebsites.net',
+  ConsultationMockURL: 'https://localhost:44398/',
 };
 
 /*

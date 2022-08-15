@@ -1,0 +1,13 @@
+<!-- <mat-drawer-container>
+    <mat-drawer mode="side" [opened]="sideBarOpen">
+      <app-sidenav></app-sidenav>
+    </mat-drawer>
+    <mat-drawer-content>
+      <app-header (toggleSidebarForMe)="sideBarToggler()"></app-header>
+    </mat-drawer-content>
+  </mat-drawer-container>
+   -->
+   <div class = "background">
+<all-appointments (isGridView)="changeScreen($event)" [ngStyle]="{display: isAppointmentGridVisible ? 'initial' : 'none'}"></all-appointments>
+<add-appointments (isGridView)="changeScreen($event)" [ngStyle]="{display: !isAppointmentGridVisible ? 'initial' : 'none'}"></add-appointments>
+</div>
