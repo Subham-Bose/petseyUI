@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { Pet } from 'src/app/Models/appointmentPet.model';
 import { PetParent } from 'src/app/Models/appointmentPetParent.model';
 import { Vet } from 'src/app/Models/appointmentVet.model';
+import { Gender } from 'src/app/Models/gender.enum';
 import { AppointmentService } from './add-appointment.service';
 
 @Component({
@@ -18,7 +19,6 @@ import { AppointmentService } from './add-appointment.service';
   styleUrls: ['./add-appointment.component.scss'],
 })
 export class AddAppointmentsComponent implements OnInit {
-  @Output() isGridView = new EventEmitter<boolean>();
   inputValue: string = '';
   vetId = '';
   vetName = '';
@@ -48,7 +48,7 @@ export class AddAppointmentsComponent implements OnInit {
   ];
 
   petParents: PetParent[];
-  petList:Pet[];
+  petList: Pet[];
 
   constructor(
     private fb: FormBuilder,
@@ -64,37 +64,61 @@ export class AddAppointmentsComponent implements OnInit {
       issue: new FormControl(),
       reason: new FormControl(),
       pet: new FormControl(),
-      parent: new FormControl(),
+      parent: new FormControl(null, Validators.required),
       vet: new FormControl(),
+    });
 
-    })
-    this.petList = this.service.getAllPetsByParent();
-    this.petParents = this.service.getAllParent();
+    this.service.getAllParent().subscribe({
+      next: (res: PetParent[]) => {
+        this.petParents = res;
+        console.log(this.petParents);
+      },
+      error: (err) => console.log(err),
+    });
     this.appointmentForm.patchValue({
-      vet: new Vet(1, "Dr. Kumar", "Navle", "99999")
-    })
+      vet: new Vet(1, 'Dr. Kumar', 'Navle', '99999'),
+    });
 
     this.vetId = JSON.parse(localStorage.getItem('vetId'));
     this.vetName = JSON.parse(localStorage.getItem('vetName'));
+  }
+  getAllOwnerPets() {
+    this.service
+      .getAllPetsByParent(this.appointmentForm.get('parent').value.parentId)
+      .subscribe({
+        next: (res: any) => {
+          var result: any[] = res['Pets'];
+          this.petList = [];
+          result.forEach((x) => {
+            this.petList.push(
+              new Pet(x['PetId'], x['Name'], Gender[x['Gender']], x['PetDOB'])
+            );
+          });
+        },
+        error: (err) => console.log(err),
+      });
   }
 
   displayFnForpet(pet: Pet): string {
     return pet && pet.petName ? pet.petName : '';
   }
   displayFnParent(parent: PetParent) {
-    return parent && parent.parentName ? parent.parentName : "";
+    return parent && parent.parentName ? parent.parentName : '';
   }
 
   changeScreen() {
-    this.isGridView.emit(true);
+    this.router.navigate(['dashboard', 'allAppointment']);
   }
 
-  submitForm(){
-    console.log(this.appointmentForm.value);  
+  submitForm() {
+    console.log(this.appointmentForm.value);
     this.service.createAppointment(this.appointmentForm.value).subscribe({
-      next: (res) => console.log(res),
-      error: (err) => console.log(err)              
-    })  
+      next: (res) => {
+        console.log(res);
+        this.changeScreen();
+      },
+      error: (err) => console.log(err),
+    });
   }
 
   OnInput($event) {

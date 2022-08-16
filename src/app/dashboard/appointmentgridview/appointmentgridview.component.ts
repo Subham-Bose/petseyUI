@@ -1,4 +1,5 @@
-import { Input } from '@angular/core';
+import { formatDate } from '@angular/common';
+import { Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { NavigationExtras, Router } from '@angular/router';
@@ -9,36 +10,68 @@ import { ConsultationService } from 'src/app/Services/consultation.service';
 @Component({
   selector: 'app-appointmentgridview',
   templateUrl: './appointmentgridview.component.html',
-  styleUrls: ['./appointmentgridview.component.scss']
+  styleUrls: ['./appointmentgridview.component.scss'],
 })
-export class AppointmentgridviewComponent implements OnInit {
-  role = "vet";
-  @Input() status = '';
+export class AppointmentgridviewComponent implements OnInit, OnChanges {
+  role = 'vet';
+  @Input() filters: {
+    status: string;
+    startDate: string;
+    endDate: string;
+  };
+
   roleId: number = 1;
   fetchedAppointments: AppointmentCard[] = [];
- // fetchedAppointments:any;
-  constructor(private service: ConsultationService,
-    private dialog: MatDialog,
-    private router: Router) { }
+  constructor(private service: ConsultationService, private router: Router) {}
 
   ngOnInit(): void {
-  //  this.service.getAllAppointmentsByRole(this.roleId,this.role).subscribe({
-  //   next:(res) => {
-  //     this.fetchedAppointments = res;
-  //     console.log(res);
-  //   },
-  //   error(err) {
-  //       console.log(err);
-  //   },
-  //  })
-  this.getAllAppointmentDetailsByRole(this.roleId,this.role);
+    console.log(this.filters);
 
+    this.getAllAppointmentDetailsByRole(
+      this.roleId,
+      this.role,
+      this.filters.startDate
+        ? this.filters.startDate
+        : formatDate(Date.now(), 'yyyy-MM-dd', 'en-US'),
+      this.filters.endDate
+        ? this.filters.endDate
+        : formatDate(Date.now(), 'yyyy-MM-dd', 'en-US')
+    );
   }
-  getAllAppointmentDetailsByRole(roleId, role) {
-    this.service.getAllAppointmentsByRole(roleId, role)
+
+  ngOnChanges(): void {
+    this.fetchedAppointments = [];
+    if (this.filters.status == 'All') {
+      this.getAllAppointmentDetailsByRole(
+        this.roleId,
+        this.role,
+        this.filters.startDate
+          ? this.filters.startDate
+          : formatDate(Date.now(), 'yyyy-MM-dd', 'en-US'),
+        this.filters.endDate
+          ? this.filters.endDate
+          : formatDate(Date.now(), 'yyyy-MM-dd', 'en-US')
+      );
+    } else {
+      this.getAllAppointmentFiltered(
+        this.roleId,
+        this.filters.status,
+        this.filters.startDate
+          ? this.filters.startDate
+          : formatDate(Date.now(), 'yyyy-MM-dd', 'en-US'),
+        this.filters.endDate
+          ? this.filters.endDate
+          : formatDate(Date.now(), 'yyyy-MM-dd', 'en-US')
+      );
+    }
+  }
+
+  getAllAppointmentDetailsByRole(roleId, role, startDate, endDate) {
+    this.service
+      .getAllAppointmentsByRole(roleId, role, startDate, endDate)
       .subscribe({
-        next: (res:any[]) => {
-          for (var val of res ) {
+        next: (res: any[]) => {
+          for (var val of res) {
             this.fetchedAppointments.push(
               new AppointmentCard(
                 val.appointmentId,
@@ -49,7 +82,7 @@ export class AppointmentgridviewComponent implements OnInit {
                 val.AppointmentTime,
                 val.PetDOB,
                 val.VetName,
-                val.VetSpeciality,
+                val.VetSpeciality
               )
             );
           }
@@ -59,6 +92,39 @@ export class AppointmentgridviewComponent implements OnInit {
         },
       });
   }
+
+  getAllAppointmentFiltered(vetId: number, status: string, startDate, endDate) {
+    this.service
+      .getAllAppointmentFilteredWithStatusAndDate(
+        vetId,
+        status,
+        startDate,
+        endDate
+      )
+      .subscribe({
+        next: (res: any[]) => {
+          for (var val of res) {
+            this.fetchedAppointments.push(
+              new AppointmentCard(
+                val.appointmentId,
+                val.PetName,
+                val.Gender,
+                val.OwnerName,
+                val.AppointmentDate,
+                val.AppointmentTime,
+                val.PetDOB,
+                val.VetName,
+                val.VetSpeciality
+              )
+            );
+          }
+        },
+        error: (err) => {
+          console.log(err.message);
+        },
+      });
+  }
+
   viewDetail(appointment: any) {
     let navigationExtras: NavigationExtras = {
       state: { appointmentId: appointment.AppointmentId },

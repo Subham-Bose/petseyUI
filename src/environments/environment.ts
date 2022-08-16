@@ -5,9 +5,9 @@
 export const environment = {
   production: false,
   authUrl: 'https://webapiauthnew.azurewebsites.net',
-  appointmentURL: 'https://cmdapiappointments.azurewebsites.net',
-  vetURL: 'https://cmdapidoctors.azurewebsites.net',
-  petURL: 'https://cmdapipatients.azurewebsites.net',
+  appointmentURL: 'https://localhost:44398/',
+  vetURL: 'https://localhost:44396/',
+  petURL: 'https://localhost:44357/api/pet/',
   ConsultationMockURL: 'https://localhost:44398/',
 };
 
